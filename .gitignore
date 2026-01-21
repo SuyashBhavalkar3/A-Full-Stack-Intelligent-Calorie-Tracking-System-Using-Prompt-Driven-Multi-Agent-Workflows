@@ -1,0 +1,14 @@
+client-secret.json
+__pycache__/
+.env
+auth_service/__pycache__/
+cal_env/
+cal_env
+venv/
+venv
+*.pyc
+.DS_Store
+.idea/
+.vscode/
+app.db
+instance/

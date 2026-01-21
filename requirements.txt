@@ -1,0 +1,11 @@
+fastapi
+sqlalchemy
+uvicorn
+python-jose
+passlib
+bcrypt<4.0
+python-dotenv
+authlib
+pydantic[email]
+httpx
+itsdangerous
