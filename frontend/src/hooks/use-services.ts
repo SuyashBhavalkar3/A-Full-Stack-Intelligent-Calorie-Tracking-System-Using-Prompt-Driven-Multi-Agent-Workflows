@@ -38,7 +38,7 @@ export function useGoalsSet() {
  */
 export function useWaterToday(autoFetch = true) {
   const waterCall = useCallback(() => waterAPI.getToday(), []);
-  return useApi(waterCall, { autoFetch, showErrorToast: true });
+  return useApi(waterCall, { autoFetch, showErrorToast: false });
 }
 
 export function useWaterGoal() {

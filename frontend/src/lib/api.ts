@@ -90,8 +90,8 @@ api.interceptors.response.use(
  * Auth API - Handles authentication operations
  */
 export const authAPI = {
-  register: (email: string, password: string, name: string) =>
-    api.post('/auth/register', { email, password, name }),
+  register: (email: string, password: string, name: string, confirmPassword: string) =>
+    api.post('/auth/register', { email, password, full_name: name, confirm_password: confirmPassword }),
 
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
@@ -121,7 +121,13 @@ export const profileAPI = {
     weight: number;
     gender: string;
     activity_level: string;
-  }) => api.post('/profile/setup', data),
+  }) => api.post('/profile/setup', {
+    age: data.age,
+    height_cm: data.height,
+    weight_kg: data.weight,
+    gender: data.gender,
+    activity_level: data.activity_level,
+  }),
 
   getMe: () => api.get('/profile/me'),
 };
@@ -133,7 +139,10 @@ export const goalsAPI = {
   set: (data: {
     target_weight: number;
     weekly_goal: number;
-  }) => api.post('/goals/set', data),
+  }) => api.post('/goals/set', {
+    target_weight: data.target_weight,
+    weekly_goal_kg: data.weekly_goal,
+  }),
 
   getMe: () => api.get('/goals/me'),
 };

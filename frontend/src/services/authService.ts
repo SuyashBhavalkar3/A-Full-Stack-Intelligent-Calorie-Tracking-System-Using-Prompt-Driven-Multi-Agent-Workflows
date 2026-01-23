@@ -38,10 +38,11 @@ export const authService = {
   async register(
     email: string,
     password: string,
-    name: string
+    name: string,
+    confirmPassword: string
   ): Promise<RegisterResponse> {
     try {
-      const response = await authAPI.register(email, password, name);
+      const response = await authAPI.register(email, password, name, confirmPassword);
       const data = response.data as RegisterResponse;
 
       // Store tokens

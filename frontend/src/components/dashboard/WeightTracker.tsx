@@ -24,7 +24,7 @@ interface WeightEntry {
 
 interface WeightTrackerProps {
   history: WeightEntry[];
-  onWeightLogged: (entry: WeightEntry) => void;
+  onWeightLogged: (() => Promise<void>) | ((entry: WeightEntry) => void);
 }
 
 export const WeightTracker: React.FC<WeightTrackerProps> = ({
@@ -33,9 +33,12 @@ export const WeightTracker: React.FC<WeightTrackerProps> = ({
 }) => {
   const [weight, setWeight] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [time, setTime] = useState(
-    new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
-  );
+  const [time, setTime] = useState(() => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  });
   const [isLogging, setIsLogging] = useState(false);
   const { toast } = useToast();
 
@@ -51,6 +54,37 @@ export const WeightTracker: React.FC<WeightTrackerProps> = ({
       return;
     }
 
+    // Validate date format (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      toast({
+        title: 'Invalid date format',
+        description: 'Please use a valid date (YYYY-MM-DD).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate time format (HH:mm)
+    if (!/^\d{2}:\d{2}$/.test(time)) {
+      toast({
+        title: 'Invalid time format',
+        description: 'Please use a valid time (HH:mm).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate that date is not in the future
+    const selectedDateTime = new Date(`${date}T${time}:00`);
+    if (selectedDateTime > new Date()) {
+      toast({
+        title: 'Invalid date',
+        description: 'Weight cannot be logged for a future date.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLogging(true);
     try {
       await weightAPI.log({
@@ -59,11 +93,18 @@ export const WeightTracker: React.FC<WeightTrackerProps> = ({
         time,
       });
 
-      onWeightLogged({
-        weight: parseFloat(weight),
-        date,
-        time,
-      });
+      // Call onWeightLogged - supports both refetch function and entry callback
+      if (onWeightLogged.length === 0) {
+        // It's a refetch function (async with no parameters)
+        await (onWeightLogged as any)();
+      } else {
+        // It's the old callback function
+        onWeightLogged({
+          weight: parseFloat(weight),
+          date,
+          time,
+        } as any);
+      }
 
       setWeight('');
       toast({

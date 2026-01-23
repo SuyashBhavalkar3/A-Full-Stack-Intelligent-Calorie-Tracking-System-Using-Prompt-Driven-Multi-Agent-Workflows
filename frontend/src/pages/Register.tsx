@@ -48,7 +48,7 @@ const Register: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await register(email, password, name);
+      await register(email, password, name, confirmPassword);
       toast({
         title: 'Account created!',
         description: 'Welcome to BeFit. Let\'s set up your profile.',

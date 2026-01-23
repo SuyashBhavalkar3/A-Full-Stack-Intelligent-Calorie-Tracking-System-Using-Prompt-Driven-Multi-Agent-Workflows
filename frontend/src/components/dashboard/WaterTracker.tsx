@@ -16,8 +16,8 @@ import {
 interface WaterTrackerProps {
   goal: number; // liters
   glasses: number;
-  onGlassAdded: (glasses: number) => void;
-  onGoalUpdated: (goal: number) => void;
+  onGlassAdded: ((glasses: number) => void) | (() => Promise<void>);
+  onGoalUpdated: ((goal: number) => void) | (() => Promise<void>);
 }
 
 export const WaterTracker: React.FC<WaterTrackerProps> = ({
@@ -48,7 +48,11 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
     setIsAddingGlass(true);
     try {
       await waterAPI.addGlass();
-      onGlassAdded(glasses + 1);
+      // Refetch water data to update UI with server state
+      if (typeof onGlassAdded === 'function') {
+        // If onGlassAdded is a function that refetches, call it
+        await (onGlassAdded as any)();
+      }
       
       if (glasses + 1 === totalGlasses) {
         toast({
@@ -81,7 +85,16 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
     setIsSettingGoal(true);
     try {
       await waterAPI.setGoal(goalValue);
-      onGoalUpdated(goalValue);
+      // Refetch water data to update UI with server state
+      if (typeof onGoalUpdated === 'function') {
+        if (onGoalUpdated.length === 0) {
+          // It's a refetch function (no parameters)
+          await (onGoalUpdated as any)();
+        } else {
+          // It's the old callback function
+          onGoalUpdated(goalValue);
+        }
+      }
       setDialogOpen(false);
       toast({
         title: 'Goal updated!',

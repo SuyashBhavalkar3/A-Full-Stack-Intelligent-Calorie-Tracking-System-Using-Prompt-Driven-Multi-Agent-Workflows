@@ -112,8 +112,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await Promise.all([refreshUser(), refreshProfile(), refreshGoals()]);
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    const response = await authAPI.register(email, password, name);
+  const register = async (email: string, password: string, name: string, confirmPassword: string) => {
+    const response = await authAPI.register(email, password, name, confirmPassword);
     const { access_token, refresh_token } = response.data;
     setTokens(access_token, refresh_token);
     await refreshUser();

@@ -19,11 +19,13 @@ interface LoggedItem {
 interface AIFoodLoggerProps {
   onFoodLogged: (data: { calories: number; protein: number; carbs: number; fat: number }) => void;
   onExerciseLogged: (calories: number) => void;
+  onItemRemoved?: (data: { type: 'food' | 'exercise'; calories: number; protein?: number; carbs?: number; fat?: number }) => void;
 }
 
 export const AIFoodLogger: React.FC<AIFoodLoggerProps> = ({
   onFoodLogged,
   onExerciseLogged,
+  onItemRemoved,
 }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,59 +47,76 @@ export const AIFoodLogger: React.FC<AIFoodLoggerProps> = ({
       const response = await llmAPI.log(input);
       const data = response.data;
 
+      console.log('LLM Response:', data); // Debug logging
+
+      let hasFoods = false;
+      let hasExercises = false;
+
       // Handle food items
-      if (data.foods && data.foods.length > 0) {
+      if (data.foods && Array.isArray(data.foods) && data.foods.length > 0) {
+        hasFoods = true;
         let totalFood = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-        const newItems: LoggedItem[] = data.foods.map((food: {
-          name: string;
-          calories: number;
-          protein: number;
-          carbs: number;
-          fat: number;
-        }) => {
-          totalFood.calories += food.calories;
-          totalFood.protein += food.protein;
-          totalFood.carbs += food.carbs;
-          totalFood.fat += food.fat;
+        const newItems: LoggedItem[] = data.foods.map((food: any) => {
+          const calories = food.calories || 0;
+          const protein = food.protein || 0;
+          const carbs = food.carbs || 0;
+          const fat = food.fat || 0;
+          
+          totalFood.calories += calories;
+          totalFood.protein += protein;
+          totalFood.carbs += carbs;
+          totalFood.fat += fat;
+          
           return {
             id: Date.now().toString() + Math.random(),
             type: 'food' as const,
-            name: food.name,
-            calories: food.calories,
-            protein: food.protein,
-            carbs: food.carbs,
-            fat: food.fat,
+            name: food.name || 'Unknown food',
+            calories,
+            protein,
+            carbs,
+            fat,
           };
         });
+        console.log('Total Food:', totalFood); // Debug
         setLoggedItems((prev) => [...newItems, ...prev]);
         onFoodLogged(totalFood);
       }
 
       // Handle exercise
-      if (data.exercises && data.exercises.length > 0) {
+      if (data.exercises && Array.isArray(data.exercises) && data.exercises.length > 0) {
+        hasExercises = true;
         let totalBurned = 0;
-        const newItems: LoggedItem[] = data.exercises.map((exercise: {
-          name: string;
-          calories_burned: number;
-        }) => {
-          totalBurned += exercise.calories_burned;
+        const newItems: LoggedItem[] = data.exercises.map((exercise: any) => {
+          const burned = exercise.calories_burned || 0;
+          totalBurned += burned;
           return {
             id: Date.now().toString() + Math.random(),
             type: 'exercise' as const,
-            name: exercise.name,
-            calories: exercise.calories_burned,
+            name: exercise.name || 'Unknown exercise',
+            calories: burned,
           };
         });
+        console.log('Total Burned:', totalBurned); // Debug
         setLoggedItems((prev) => [...newItems, ...prev]);
         onExerciseLogged(totalBurned);
+      }
+
+      if (!hasFoods && !hasExercises) {
+        toast({
+          title: 'No items found',
+          description: 'Could not parse any food or exercise from your input. Try being more specific.',
+          variant: 'destructive',
+        });
+        return;
       }
 
       setInput('');
       toast({
         title: 'Logged successfully!',
-        description: 'Your entry has been recorded.',
+        description: `${hasFoods ? 'Food' : ''}${hasFoods && hasExercises ? ' and ' : ''}${hasExercises ? 'Exercise' : ''} recorded.`,
       });
     } catch (error) {
+      console.error('Error:', error);
       toast({
         title: 'Error',
         description: 'Failed to process your entry. Please try again.',
@@ -109,6 +128,23 @@ export const AIFoodLogger: React.FC<AIFoodLoggerProps> = ({
   };
 
   const removeItem = (id: string) => {
+    const itemToRemove = loggedItems.find((item) => item.id === id);
+    if (itemToRemove && onItemRemoved) {
+      if (itemToRemove.type === 'food') {
+        onItemRemoved({
+          type: 'food',
+          calories: itemToRemove.calories,
+          protein: itemToRemove.protein,
+          carbs: itemToRemove.carbs,
+          fat: itemToRemove.fat,
+        });
+      } else {
+        onItemRemoved({
+          type: 'exercise',
+          calories: itemToRemove.calories,
+        });
+      }
+    }
     setLoggedItems((prev) => prev.filter((item) => item.id !== id));
   };
 

@@ -75,6 +75,25 @@ const Dashboard: React.FC = () => {
     }));
   };
 
+  const handleItemRemoved = (data: { type: 'food' | 'exercise'; calories: number; protein?: number; carbs?: number; fat?: number }) => {
+    setDailyData((prev) => {
+      if (data.type === 'food') {
+        return {
+          ...prev,
+          caloriesConsumed: Math.max(0, prev.caloriesConsumed - data.calories),
+          protein: Math.max(0, prev.protein - (data.protein || 0)),
+          carbs: Math.max(0, prev.carbs - (data.carbs || 0)),
+          fat: Math.max(0, prev.fat - (data.fat || 0)),
+        };
+      } else {
+        return {
+          ...prev,
+          caloriesBurned: Math.max(0, prev.caloriesBurned - data.calories),
+        };
+      }
+    });
+  };
+
   const handleWaterUpdate = async () => {
     await refetchWater();
   };
@@ -162,6 +181,7 @@ const Dashboard: React.FC = () => {
               <AIFoodLogger
                 onFoodLogged={handleFoodLogged}
                 onExerciseLogged={handleExerciseLogged}
+                onItemRemoved={handleItemRemoved}
               />
             </motion.div>
 
@@ -177,7 +197,7 @@ const Dashboard: React.FC = () => {
               </motion.div>
               <motion.div variants={itemVariants}>
                 <WeightTracker
-                  history={Array.isArray(weightHistory) ? weightHistory : (weightHistory?.history || [])}
+                  history={weightHistory?.history && Array.isArray(weightHistory.history) ? weightHistory.history : (Array.isArray(weightHistory) ? weightHistory : [])}
                   onWeightLogged={handleWeightLogged}
                 />
               </motion.div>

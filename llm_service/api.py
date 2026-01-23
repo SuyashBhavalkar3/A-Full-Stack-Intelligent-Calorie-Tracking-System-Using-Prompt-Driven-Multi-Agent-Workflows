@@ -6,6 +6,7 @@ from auth_service.dependencies import get_current_user
 from sqlalchemy.orm import Session
 from database.models.user_profile_setup import UserProfile
 from database.models.user_goal_setup import UserGoal
+from datetime import datetime
 
 router = APIRouter()
 
@@ -28,6 +29,6 @@ def log_input(
     if not profile:
         raise HTTPException(400, "Complete your profile before using AI logging")
 
-    result = process_user_input(payload.text)
+    result = process_user_input(payload.text, db, current_user.id)
 
     return result

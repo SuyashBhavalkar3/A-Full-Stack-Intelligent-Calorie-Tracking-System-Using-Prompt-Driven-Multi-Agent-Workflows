@@ -36,10 +36,15 @@ const Weight: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleWeightLogged = (entry: WeightEntry) => {
-    setWeightHistory((prev) =>
-      [...prev, entry].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    );
+  const handleWeightLogged = async () => {
+    // Refetch weight history from database to ensure persistence
+    try {
+      const response = await weightAPI.getHistory();
+      const history = Array.isArray(response.data) ? response.data : (response.data?.history || []);
+      setWeightHistory(history);
+    } catch (error) {
+      console.error('Error refetching weight history:', error);
+    }
   };
 
   if (authLoading || isLoading) {
