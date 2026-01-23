@@ -1,0 +1,350 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* BeFit Design System - Pastel Glassmorphism Theme */
+
+@layer base {
+  :root {
+    /* Base colors */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    /* Card with glassmorphism */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Soft Teal */
+    --primary: 174 62% 47%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Purple */
+    --secondary: 262 52% 78%;
+    --secondary-foreground: 262 47% 25%;
+
+    /* Muted - Light gray blue */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent - Soft Blue */
+    --accent: 199 89% 86%;
+    --accent-foreground: 199 89% 30%;
+
+    /* Destructive - Soft Red */
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success - Soft Green */
+    --success: 142 52% 60%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning - Soft Orange */
+    --warning: 38 92% 65%;
+    --warning-foreground: 38 92% 20%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 174 62% 47%;
+
+    --radius: 1rem;
+
+    /* Glassmorphism */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 0 0% 100% / 0.3;
+    --glass-blur: 20px;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(174 62% 47%), hsl(199 89% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(262 52% 78%), hsl(299 52% 78%));
+    --gradient-accent: linear-gradient(135deg, hsl(199 89% 86%), hsl(174 62% 85%));
+    --gradient-hero: linear-gradient(135deg, hsl(210 40% 98%), hsl(199 89% 95%));
+    --gradient-calories: linear-gradient(135deg, hsl(38 92% 65%), hsl(25 92% 60%));
+    --gradient-protein: linear-gradient(135deg, hsl(0 72% 65%), hsl(350 72% 60%));
+    --gradient-carbs: linear-gradient(135deg, hsl(199 89% 60%), hsl(210 89% 55%));
+    --gradient-fat: linear-gradient(135deg, hsl(262 52% 65%), hsl(280 52% 60%));
+    --gradient-water: linear-gradient(135deg, hsl(199 89% 60%), hsl(199 89% 45%));
+    --gradient-weight: linear-gradient(135deg, hsl(142 52% 60%), hsl(160 52% 50%));
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(222 47% 11% / 0.08);
+    --shadow-md: 0 8px 24px -4px hsl(222 47% 11% / 0.1);
+    --shadow-lg: 0 16px 40px -8px hsl(222 47% 11% / 0.12);
+    --shadow-glow: 0 0 40px -10px hsl(174 62% 47% / 0.3);
+
+    /* Sidebar */
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 174 62% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 199 89% 95%;
+    --sidebar-accent-foreground: 199 89% 30%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 174 62% 47%;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 174 62% 55%;
+    --primary-foreground: 222 47% 8%;
+
+    --secondary: 262 40% 35%;
+    --secondary-foreground: 262 40% 90%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 199 50% 25%;
+    --accent-foreground: 199 89% 90%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 52% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 95%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 174 62% 55%;
+
+    --glass-bg: 222 47% 11% / 0.8;
+    --glass-border: 0 0% 100% / 0.1;
+    --glass-blur: 20px;
+
+    --gradient-hero: linear-gradient(135deg, hsl(222 47% 8%), hsl(222 47% 12%));
+
+    --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 8px 24px -4px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 16px 40px -8px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 40px -10px hsl(174 62% 55% / 0.4);
+
+    --sidebar-background: 222 47% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 174 62% 55%;
+    --sidebar-primary-foreground: 222 47% 8%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 174 62% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl border;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur));
+    border-color: hsl(var(--glass-border));
+    box-shadow: var(--shadow-md);
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+
+  .glass-card-hover:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-text-secondary {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-secondary);
+  }
+
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background-image: var(--gradient-secondary);
+  }
+
+  .gradient-accent {
+    background-image: var(--gradient-accent);
+  }
+
+  .gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+
+  /* Soft shadows */
+  .shadow-soft {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-soft-md {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-soft-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Progress bar gradients */
+  .progress-calories {
+    background-image: var(--gradient-calories);
+  }
+
+  .progress-protein {
+    background-image: var(--gradient-protein);
+  }
+
+  .progress-carbs {
+    background-image: var(--gradient-carbs);
+  }
+
+  .progress-fat {
+    background-image: var(--gradient-fat);
+  }
+
+  .progress-water {
+    background-image: var(--gradient-water);
+  }
+
+  .progress-weight {
+    background-image: var(--gradient-weight);
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    @apply relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-2xl;
+    background-image: var(--gradient-primary);
+    z-index: -1;
+    margin: -2px;
+  }
+
+  /* Water glass */
+  .water-glass {
+    @apply w-8 h-10 rounded-b-lg relative overflow-hidden border-2 border-blue-300 bg-blue-50 dark:bg-blue-900/30;
+    transition: all 0.3s ease;
+  }
+
+  .water-glass.filled {
+    @apply bg-blue-400 dark:bg-blue-500;
+  }
+
+  .water-glass.filled::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(to bottom, transparent 0%, hsl(199 89% 60%) 100%);
+    animation: fillWater 0.5s ease-out;
+  }
+
+  @keyframes fillWater {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply relative overflow-hidden bg-muted rounded-lg;
+  }
+
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      transparent 100%
+    );
+    animation: skeleton-loading 1.5s infinite;
+  }
+
+  @keyframes skeleton-loading {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@layer utilities {
+  /* Animation delays */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+}

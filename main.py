@@ -10,6 +10,8 @@ from database.database import SessionLocal, engine, Base
 from llm_service.api import router as llm_router
 from profile_service.api import router as profile_router
 from goal_service.api import router as goal_router
+from water_service.api import router as water_router
+from weight_service.api import router as weight_router
 from fastapi import Depends
 
 load_dotenv()
@@ -53,9 +55,18 @@ app.include_router(llm_router, prefix="/llm", tags=["llm"],
                     dependencies=[Depends(get_current_user)])
 app.include_router(profile_router,
                     dependencies=[Depends(get_current_user)])
-
 app.include_router(goal_router,
                     dependencies=[Depends(get_current_user)])
+app.include_router(water_router,
+                    dependencies=[Depends(get_current_user)])
+app.include_router(weight_router,
+                    dependencies=[Depends(get_current_user)])
+
+@app.on_event("startup")
+def show_routes():
+    print("\nRegistered routes:")
+    for route in app.routes:
+        print(f"{route.methods}  {route.path}")
 
 @app.get("/")
 def read_root():
