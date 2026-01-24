@@ -55,7 +55,7 @@ export function FoodLogItem({
             "font-bold",
             isWorkout ? "text-accent" : "text-calories"
           )}>
-            {isWorkout ? "-" : "+"}{calories} cal
+            {isWorkout ? "+" : "-"}{Math.abs(calories)} cal
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="w-3 h-3" />
