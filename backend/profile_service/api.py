@@ -18,18 +18,28 @@ def setup_profile(
 
     existing = db.query(UserProfile).filter_by(user_id=current_user.id).first()
     if existing:
-        raise HTTPException(400, "Profile already exists")
+        # Update existing profile
+        existing.age = payload.age
+        existing.height_cm = payload.height_cm
+        existing.weight_kg = payload.weight_kg
+        existing.gender = payload.gender
+        existing.activity_level = payload.activity_level
+    else:
+        # Create new profile
+        profile = UserProfile(
+            user_id=current_user.id,
+            **payload.dict()
+        )
+        db.add(profile)
 
-    profile = UserProfile(
-        user_id=current_user.id,
-        **payload.dict()
-    )
-
-    db.add(profile)
     db.commit()
-    db.refresh(profile)
-
-    return profile
+    
+    if existing:
+        db.refresh(existing)
+        return existing
+    else:
+        db.refresh(profile)
+        return profile
 
 
 @router.get("/me", response_model=ProfileResponse)

@@ -23,22 +23,44 @@ def set_goal(
         raise HTTPException(400, "Complete profile first")
 
     existing = db.query(UserGoal).filter_by(user_id=current_user.id).first()
-    if existing:
-        raise HTTPException(400, "Goal already set")
-
-    result = calculate_goal(profile, payload.target_weight, payload.weekly_goal_kg)
-
-    goal = UserGoal(
-        user_id=current_user.id,
-        target_weight=payload.target_weight,
-        weekly_goal_kg=payload.weekly_goal_kg,
-        **result
+    
+    # Calculate macros based on user's target_calories (calories are source of truth)
+    result = calculate_goal(
+        profile, 
+        payload.target_weight, 
+        payload.weekly_goal_kg,
+        target_calories=payload.target_calories  # Use user input as primary source
     )
 
-    db.add(goal)
-    db.commit()
+    if existing:
+        # Update existing goal
+        existing.target_weight = payload.target_weight
+        existing.weekly_goal_kg = payload.weekly_goal_kg
+        existing.daily_calories = payload.target_calories  # Store user's target, not calculated
+        existing.protein_g = result["protein_g"]
+        existing.carbs_g = result["carbs_g"]
+        existing.fat_g = result["fat_g"]
+        existing.target_date = result["target_date"]
+        db.commit()
+        db.refresh(existing)
+        return existing
+    else:
+        # Create new goal
+        goal = UserGoal(
+            user_id=current_user.id,
+            target_weight=payload.target_weight,
+            weekly_goal_kg=payload.weekly_goal_kg,
+            daily_calories=payload.target_calories,  # Store user's target
+            protein_g=result["protein_g"],
+            carbs_g=result["carbs_g"],
+            fat_g=result["fat_g"],
+            target_date=result["target_date"]
+        )
 
-    return result
+        db.add(goal)
+        db.commit()
+        db.refresh(goal)
+        return goal
 
 
 @router.get("/me", response_model=GoalResponse)

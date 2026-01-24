@@ -45,8 +45,24 @@ def process_llm_log(db: Session, user_id: UUID, llm_data: dict) -> DailyNutritio
     intent = llm_data["intent"]
     nutrition = llm_data["nutrition"]
 
+    # Safe calorie handling - ensure values are numeric
+    calories = nutrition.get("calories_kcal", 0)
+    calories = calories if isinstance(calories, (int, float)) else 0
+    
+    protein = nutrition.get("protein_g", 0)
+    protein = protein if isinstance(protein, (int, float)) else 0
+    
+    carbs = nutrition.get("carbs_g", 0)
+    carbs = carbs if isinstance(carbs, (int, float)) else 0
+    
+    fat = nutrition.get("fat_g", 0)
+    fat = fat if isinstance(fat, (int, float)) else 0
+
     # Save individual parsed items
     for item in llm_data.get("parsed_data", []):
+        # Handle both food (calories_kcal) and exercise (calories_estimate) fields
+        item_calories = item.get("calories_kcal") or item.get("calories_estimate", 0)
+        
         log = FoodLog(
             user_id=user_id,
             type=LogType.food if intent == "food" else LogType.exercise,
@@ -54,7 +70,7 @@ def process_llm_log(db: Session, user_id: UUID, llm_data: dict) -> DailyNutritio
             name=item.get("name"),
             quantity=item.get("quantity"),
             unit=item.get("unit"),
-            calories_kcal=item.get("calories_kcal", 0),
+            calories_kcal=item_calories,
             protein_g=item.get("protein_g", 0),
             carbs_g=item.get("carbs_g", 0),
             fat_g=item.get("fat_g", 0),
@@ -64,19 +80,23 @@ def process_llm_log(db: Session, user_id: UUID, llm_data: dict) -> DailyNutritio
         db.add(log)
 
     if intent == "food":
-        daily.consumed_calories += nutrition["calories_kcal"]
-        daily.consumed_protein += nutrition["protein_g"]
-        daily.consumed_carbs += nutrition["carbs_g"]
-        daily.consumed_fat += nutrition["fat_g"]
+        # Food reduces net calories (stored as consumed_calories)
+        daily.consumed_calories += calories
+        daily.consumed_protein += protein
+        daily.consumed_carbs += carbs
+        daily.consumed_fat += fat
 
-        daily.remaining_calories -= nutrition["calories_kcal"]
-        daily.remaining_protein -= nutrition["protein_g"]
-        daily.remaining_carbs -= nutrition["carbs_g"]
-        daily.remaining_fat -= nutrition["fat_g"]
+        # Remaining calories decrease (food is negative contribution)
+        daily.remaining_calories -= calories
+        daily.remaining_protein -= protein
+        daily.remaining_carbs -= carbs
+        daily.remaining_fat -= fat
 
     elif intent == "exercise":
-        daily.burned_calories += nutrition["calories_kcal"]
-        daily.remaining_calories += nutrition["calories_kcal"]
+        # Exercise increases net calories available (burned_calories)
+        daily.burned_calories += calories
+        # Remaining calories increase (exercise is positive contribution)
+        daily.remaining_calories += calories
 
     # Prevent negative values
     daily.remaining_calories = max(0, daily.remaining_calories)

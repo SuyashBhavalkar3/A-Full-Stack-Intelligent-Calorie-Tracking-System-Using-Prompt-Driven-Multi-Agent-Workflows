@@ -29,7 +29,15 @@ def food_parser_node(state):
     try:
         parsed = json.loads(raw)
         state["parsed_data"] = parsed.get("items", [])
-        state["nutrition"] = parsed.get("total", {})
+        
+        # Safe nutrition extraction - handle None and invalid values
+        nutrition = parsed.get("total", {})
+        # Ensure calories_kcal is a valid number
+        cal = nutrition.get("calories_kcal")
+        if not isinstance(cal, (int, float)) or cal is None:
+            nutrition["calories_kcal"] = 0
+        
+        state["nutrition"] = nutrition
     except json.JSONDecodeError:
         print("❌ Food parser returned invalid JSON:")
         print(raw)
@@ -55,9 +63,13 @@ def exercise_parser_node(state):
 
         items = parsed.get("items", [])
 
+        # Safe calorie summation - handle None and invalid values
         total_calories = 0
         for ex in items:
-            total_calories += ex.get("calories_estimate", 0)
+            cal = ex.get("calories_estimate")
+            # Treat None, missing, or non-numeric values as 0
+            safe_cal = cal if isinstance(cal, (int, float)) and cal is not None else 0
+            total_calories += safe_cal
 
         state["parsed_data"] = items
         state["nutrition"] = {
