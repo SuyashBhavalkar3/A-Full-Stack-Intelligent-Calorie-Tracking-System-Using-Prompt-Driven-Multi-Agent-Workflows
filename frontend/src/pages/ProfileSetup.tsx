@@ -28,6 +28,7 @@ const goalsSchema = z.object({
   fat_goal: z.coerce.number().min(0).max(300),
   weight_goal: z.coerce.number().min(30).max(300),
   weekly_goal_kg: z.coerce.number().min(0.25).max(3),
+  water_goal_glasses: z.coerce.number().min(1).max(20, "Maximum 20 glasses per day"),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -67,6 +68,7 @@ export default function ProfileSetup() {
       fat_goal: undefined,
       weight_goal: undefined,
       weekly_goal_kg: 0.5,
+      water_goal_glasses: 8,
     },
   });
 
@@ -145,8 +147,8 @@ export default function ProfileSetup() {
         weight_goal: data.weight_goal,
         weekly_goal_kg: data.weekly_goal_kg,
       });
-      // Set default water goal (8 glasses = 2 liters)
-      await waterApi.setGoal(8);
+      // Set user's water goal
+      await waterApi.setGoal(data.water_goal_glasses);
       await refreshUser();
       
       toast({
@@ -403,6 +405,22 @@ export default function ProfileSetup() {
               />
               <p className="text-xs text-muted-foreground">
                 Recommended: 0.5-1 kg per week for sustainable loss
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="water_goal_glasses">Daily Water Goal (Glasses)</Label>
+              <Input
+                id="water_goal_glasses"
+                type="number"
+                min="1"
+                max="20"
+                placeholder="e.g., 8"
+                {...goalsForm.register("water_goal_glasses")}
+                className="h-12"
+              />
+              <p className="text-xs text-muted-foreground">
+                8 glasses = 2 liters (250ml per glass). Recommended: 6-10 glasses per day
               </p>
             </div>
 
