@@ -70,6 +70,6 @@ async def startup_event():
     print("Starting up the Calorie Tracking API...")
     for router in app.router.routes:
         print(f"Registered route: {router.path}")
-@app.get("/")
+@app.get("/") 
 def read_root():
     return {"message": "Welcome to the App"}
