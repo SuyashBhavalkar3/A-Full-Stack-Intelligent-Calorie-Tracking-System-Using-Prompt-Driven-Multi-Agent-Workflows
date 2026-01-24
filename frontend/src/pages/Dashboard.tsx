@@ -145,7 +145,6 @@ export default function Dashboard() {
   const handleAISubmit = async (input: string) => {
     setIsLoading(true);
     try {
-      const previousCalories = summary?.calories_consumed || 0;
       const response = await loggingApi.log(input);
       const result = response.data as DailyNutrition;
       
@@ -158,24 +157,15 @@ export default function Dashboard() {
         fat: result.consumed_fat,
       });
       
-      // Parse input to get item name for display
-      const itemName = input.split(' ').slice(0, 5).join(' ');
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-      
-      // Calculate calories added (difference from previous)
-      const caloriesAdded = Math.round(result.consumed_calories - previousCalories);
-      
-      // Create a display log entry
-      const newLog: FoodLog = {
-        id: `${Date.now()}`,
-        name: itemName,
-        calories: caloriesAdded,
-        time: timeStr,
-        type: "food",
-      };
-      
-      setLogs(prev => [newLog, ...prev]);
+      // Fetch updated logs from backend to get the newly added item
+      try {
+        const logsRes = await loggingApi.logs();
+        if (logsRes.data && Array.isArray(logsRes.data)) {
+          setLogs(logsRes.data);
+        }
+      } catch (logsError) {
+        console.log("Could not fetch updated logs");
+      }
       
       toast({
         title: "Logged successfully!",
