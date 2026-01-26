@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 
 // Base API configuration
 // const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://a-full-stack-intelligent-calorie.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Create axios instance with base configuration
 const api = axios.create({
