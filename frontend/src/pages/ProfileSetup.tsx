@@ -22,12 +22,13 @@ const profileSchema = z.object({
 });
 
 const goalsSchema = z.object({
+  goal_type: z.enum(["lose", "gain", "maintain"], { message: "Select a goal type" }),
+  weight_goal: z.coerce.number().min(30).max(300),
+  weekly_goal_kg: z.coerce.number().min(0.25).max(1),
   target_calories: z.coerce.number().min(1000).max(5000),
   protein_goal: z.coerce.number().min(0).max(500),
   carbs_goal: z.coerce.number().min(0).max(800),
   fat_goal: z.coerce.number().min(0).max(300),
-  weight_goal: z.coerce.number().min(30).max(300),
-  weekly_goal_kg: z.coerce.number().min(0.25).max(3),
   water_goal_glasses: z.coerce.number().min(1).max(20, "Maximum 20 glasses per day"),
 });
 
@@ -62,15 +63,22 @@ export default function ProfileSetup() {
   const goalsForm = useForm<GoalsFormData>({
     resolver: zodResolver(goalsSchema),
     defaultValues: {
+      goal_type: "lose",
+      weight_goal: undefined,
+      weekly_goal_kg: 0.5,
       target_calories: undefined,
       protein_goal: undefined,
       carbs_goal: undefined,
       fat_goal: undefined,
-      weight_goal: undefined,
-      weekly_goal_kg: 0.5,
       water_goal_glasses: 8,
     },
   });
+
+  const [calculatedData, setCalculatedData] = useState<{
+    estimatedDate?: string;
+    adjustedCalories?: number;
+  }>({});
+  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 
   // Fetch existing goals from backend
   useEffect(() => {
@@ -97,6 +105,104 @@ export default function ProfileSetup() {
     fetchGoals();
   }, [goalsForm]);
 
+  const calculateWeightMetrics = (
+    currentWeight: number,
+    targetWeight: number,
+    weeklyRate: number,
+    goalType: string
+  ) => {
+    if (!currentWeight || !targetWeight || !weeklyRate) return null;
+
+    // Calculate estimated date
+    const weightDiff = Math.abs(currentWeight - targetWeight);
+    const weeksRequired = Math.ceil(weightDiff / weeklyRate);
+    const estimatedDate = new Date();
+    estimatedDate.setDate(estimatedDate.getDate() + weeksRequired * 7);
+
+    // Calculate calorie adjustment based on goal type
+    if (profileData) {
+      const bmr = profileData.gender === "male"
+        ? 88.362 + (13.397 * profileData.weight) + (4.799 * profileData.height) - (5.677 * profileData.age)
+        : 447.593 + (9.247 * profileData.weight) + (3.098 * profileData.height) - (4.330 * profileData.age);
+
+      const activityMultipliers: Record<string, number> = {
+        sedentary: 1.2,
+        light: 1.375,
+        moderate: 1.55,
+        active: 1.725,
+        very_active: 1.9,
+      };
+
+      const tdee = bmr * activityMultipliers[profileData.activity_level];
+      // 1kg = 7700 kcal, so daily adjustment = (weeklyRate * 7700) / 7
+      const dailyAdjustment = (weeklyRate * 7700) / 7;
+      let adjustedCalories = tdee;
+
+      if (goalType === "lose") {
+        adjustedCalories = tdee - dailyAdjustment;
+      } else if (goalType === "gain") {
+        adjustedCalories = tdee + dailyAdjustment;
+      }
+
+      adjustedCalories = Math.max(1000, Math.round(adjustedCalories));
+
+      return {
+        estimatedDate: estimatedDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        adjustedCalories,
+      };
+    }
+
+    return null;
+  };
+
+  // Watch for changes to recalculate weight metrics
+  const goalTypeWatch = goalsForm.watch("goal_type");
+  const weightGoalWatch = goalsForm.watch("weight_goal");
+  const weeklyRateWatch = goalsForm.watch("weekly_goal_kg");
+
+  useEffect(() => {
+    const warnings: string[] = [];
+
+    if (profileData && goalTypeWatch && weightGoalWatch && weeklyRateWatch) {
+      // Validation checks
+      if (weeklyRateWatch > 1) {
+        warnings.push("Weekly loss exceeds 1kg - consider a slower pace for sustainability");
+      }
+
+      // Check for extreme weight targets
+      if (profileData) {
+        const bmi = profileData.weight / ((profileData.height / 100) ** 2);
+        const goalBMI = weightGoalWatch / ((profileData.height / 100) ** 2);
+        
+        if (goalBMI < 16) {
+          warnings.push("Target weight is very low - consider a healthier goal");
+        } else if (goalBMI > 40) {
+          warnings.push("Target weight is very high - consider a healthier goal");
+        }
+      }
+
+      setValidationWarnings(warnings);
+
+      const metrics = calculateWeightMetrics(
+        profileData.weight,
+        weightGoalWatch,
+        weeklyRateWatch,
+        goalTypeWatch
+      );
+      if (metrics) {
+        setCalculatedData(metrics);
+        // Pre-fill calorie recommendation only if user hasn't changed it
+        if (!goalsForm.getValues("target_calories") || goalsForm.getValues("target_calories") === 0) {
+          goalsForm.setValue("target_calories", metrics.adjustedCalories);
+        }
+      }
+    }
+  }, [goalTypeWatch, weightGoalWatch, weeklyRateWatch, profileData, goalsForm]);
+
   const handleProfileSubmit = async (data: ProfileFormData) => {
     setProfileData(data);
     
@@ -118,11 +224,10 @@ export default function ProfileSetup() {
     const fatGoal = Math.round((tdee * 0.25) / 9); // 25% of calories from fat
     const carbsGoal = Math.round((tdee - (proteinGoal * 4) - (fatGoal * 9)) / 4);
     
-    goalsForm.setValue("target_calories", tdee);
+    goalsForm.setValue("weight_goal", data.weight);
     goalsForm.setValue("protein_goal", proteinGoal);
     goalsForm.setValue("carbs_goal", carbsGoal);
     goalsForm.setValue("fat_goal", fatGoal);
-    goalsForm.setValue("weight_goal", data.weight);
     
     setStep(2);
   };
@@ -146,6 +251,7 @@ export default function ProfileSetup() {
         fat_goal: data.fat_goal,
         weight_goal: data.weight_goal,
         weekly_goal_kg: data.weekly_goal_kg,
+        goal_type: data.goal_type,
       });
       // Set user's water goal
       await waterApi.setGoal(data.water_goal_glasses);
@@ -327,8 +433,109 @@ export default function ProfileSetup() {
               </p>
             </div>
 
+            {/* Weight Goal Card */}
+            <div className="p-4 rounded-xl border border-border bg-card space-y-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <span>⚖️</span> Weight Management
+              </h3>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">Goal Type</Label>
+                <RadioGroup
+                  value={goalsForm.watch("goal_type")}
+                  onValueChange={(v) => goalsForm.setValue("goal_type", v as any)}
+                  className="flex gap-3"
+                >
+                  {["lose", "maintain", "gain"].map((type) => (
+                    <Label
+                      key={type}
+                      className={cn(
+                        "flex-1 flex items-center justify-center h-12 rounded-lg border-2 cursor-pointer transition-colors capitalize",
+                        goalsForm.watch("goal_type") === type
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <RadioGroupItem value={type} className="sr-only" />
+                      <span>
+                        {type === "lose" && "🔻 Lose"}
+                        {type === "maintain" && "➡️ Maintain"}
+                        {type === "gain" && "🔺 Gain"}
+                      </span>
+                    </Label>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="weight_goal">Target Weight (kg)</Label>
+                  <Input
+                    id="weight_goal"
+                    type="number"
+                    step="0.5"
+                    placeholder={profileData?.weight?.toString()}
+                    {...goalsForm.register("weight_goal")}
+                    className="h-12"
+                  />
+                  {goalsForm.formState.errors.weight_goal && (
+                    <p className="text-sm text-destructive">{goalsForm.formState.errors.weight_goal.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="weekly_goal_kg">Weekly Rate (kg/week)</Label>
+                  <select
+                    {...goalsForm.register("weekly_goal_kg")}
+                    className="h-12 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="0.25">0.25 kg</option>
+                    <option value="0.5">0.5 kg</option>
+                    <option value="0.75">0.75 kg</option>
+                    <option value="1">1 kg</option>
+                  </select>
+                  {goalsForm.watch("weekly_goal_kg") > 1 && (
+                    <p className="text-xs text-yellow-600">⚠️ Rate exceeds recommended 1kg/week</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Calculated Metrics Display */}
+              {calculatedData.estimatedDate && (
+                <div className="mt-4 p-3 rounded-lg bg-muted space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Estimated Goal Date:</span>
+                    <span className="font-semibold">{calculatedData.estimatedDate}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Adjusted Daily Calories:</span>
+                    <span className="font-semibold">{calculatedData.adjustedCalories} kcal</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Validation Warnings */}
+              {validationWarnings.length > 0 && (
+                <div className="mt-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200 space-y-1">
+                  {validationWarnings.map((warning, idx) => (
+                    <p key={idx} className="text-sm text-yellow-700">⚠️ {warning}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="target_calories">Daily Calories Target</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="target_calories">Daily Calories Target</Label>
+                {calculatedData.adjustedCalories && (
+                  <button
+                    type="button"
+                    onClick={() => goalsForm.setValue("target_calories", calculatedData.adjustedCalories!)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Reset to Recommended
+                  </button>
+                )}
+              </div>
               <Input
                 id="target_calories"
                 type="number"

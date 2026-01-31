@@ -10,3 +10,4 @@ class ProfileCreate(BaseModel):
 
 class ProfileResponse(ProfileCreate):
     user_id: int
+    recommended_calories: int = 0

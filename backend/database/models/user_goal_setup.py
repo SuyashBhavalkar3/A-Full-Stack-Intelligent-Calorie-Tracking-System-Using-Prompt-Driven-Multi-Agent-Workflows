@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, Date, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Float, Date, ForeignKey, DateTime, String
 from sqlalchemy.sql import func
 from database.database import Base
 
@@ -9,6 +9,7 @@ class UserGoal(Base):
 
     target_weight = Column(Float, nullable=False)
     weekly_goal_kg = Column(Float, nullable=False)
+    goal_type = Column(String(20), default="lose", nullable=False)
 
     target_date = Column(Date, nullable=False)
 

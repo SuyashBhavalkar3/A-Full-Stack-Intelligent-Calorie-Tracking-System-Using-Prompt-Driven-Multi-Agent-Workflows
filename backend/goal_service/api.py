@@ -29,14 +29,16 @@ def set_goal(
         profile, 
         payload.target_weight, 
         payload.weekly_goal_kg,
-        target_calories=payload.target_calories  # Use user input as primary source
+        target_calories=payload.target_calories,
+        goal_type=payload.goal_type
     )
 
     if existing:
         # Update existing goal
         existing.target_weight = payload.target_weight
         existing.weekly_goal_kg = payload.weekly_goal_kg
-        existing.daily_calories = payload.target_calories  # Store user's target, not calculated
+        existing.goal_type = payload.goal_type
+        existing.daily_calories = payload.target_calories
         existing.protein_g = result["protein_g"]
         existing.carbs_g = result["carbs_g"]
         existing.fat_g = result["fat_g"]
@@ -50,7 +52,8 @@ def set_goal(
             user_id=current_user.id,
             target_weight=payload.target_weight,
             weekly_goal_kg=payload.weekly_goal_kg,
-            daily_calories=payload.target_calories,  # Store user's target
+            goal_type=payload.goal_type,
+            daily_calories=payload.target_calories,
             protein_g=result["protein_g"],
             carbs_g=result["carbs_g"],
             fat_g=result["fat_g"],

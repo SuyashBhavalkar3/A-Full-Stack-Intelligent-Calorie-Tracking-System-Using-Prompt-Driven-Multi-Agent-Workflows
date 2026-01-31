@@ -154,6 +154,7 @@ export interface GoalsData {
   fat_goal: number;
   weight_goal: number;
   weekly_goal_kg: number;
+  goal_type?: string;
 }
 
 export const goalsApi = {
@@ -164,6 +165,7 @@ export const goalsApi = {
       target_weight: data.weight_goal,
       weekly_goal_kg: data.weekly_goal_kg,
       target_calories: data.target_calories,  // Calories are primary input
+      goal_type: data.goal_type || "lose",
     });
   },
   me: () => {
