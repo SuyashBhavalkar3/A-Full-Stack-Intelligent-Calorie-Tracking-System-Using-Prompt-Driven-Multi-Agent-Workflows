@@ -17,3 +17,6 @@ langchain-groq
 tenacity
 pytest
 pytest-asyncio
+assemblyai
+aiofiles
+python-multipart

@@ -13,6 +13,7 @@ from goal_service.api import router as goal_router
 from weight_service.api import router as weight_router
 from water_service.api import router as water_router
 from food_or_workout_log_service.api import router as food_or_workout_router
+from speect_to_text.api import router as speech_to_text_router
 from fastapi import Depends
 
 load_dotenv()
@@ -63,6 +64,8 @@ app.include_router(weight_router,
 app.include_router(water_router,
                     dependencies=[Depends(get_current_user)])
 app.include_router(food_or_workout_router,
+                    dependencies=[Depends(get_current_user)])
+app.include_router(speech_to_text_router,
                     dependencies=[Depends(get_current_user)])
 
 @app.on_event("startup")
