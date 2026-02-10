@@ -183,6 +183,23 @@ export const loggingApi = {
   logs: () => api.get('/food-or-workout/logs/today'),  // Fetch all logs for today
 };
 
+// Speech-to-Text API
+export const speechToTextApi = {
+  transcribe: (audioBlob: Blob, language?: string) => {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.wav');
+    if (language) {
+      formData.append('language', language);
+    }
+    return api.post('/api/speech-to-text/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  healthCheck: () => api.get('/api/speech-to-text/health'),
+};
+
 // Water tracking
 export const waterApi = {
   setGoal: (glasses: number) => {
