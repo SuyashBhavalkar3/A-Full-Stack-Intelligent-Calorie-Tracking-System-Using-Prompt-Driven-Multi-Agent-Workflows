@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MacroMindApp());
@@ -307,7 +307,7 @@ class AppState extends ChangeNotifier {
     final difference = (currentWeight - weightGoal).abs();
     final weeks = (difference / weeklyGoalKg).ceil();
     final targetDate = DateTime.now().add(Duration(days: weeks * 7));
-    return ${targetDate.month}/${targetDate.day}/${targetDate.year}';
+    return 'Target date: ${targetDate.month}/${targetDate.day}/${targetDate.year}';
   }
 
   int calculateSuggestedCalories() {
@@ -1452,8 +1452,8 @@ class _WeightScreenState extends State<WeightScreen> {
                 Text('Change since first log: ${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)} kg', style: TextStyle(color: change < 0 ? Colors.green : Colors.red)),
                 const SizedBox(height: 20),
                 if (history.isEmpty)
-                  const Text('No weight history yet.'),
-                if (history.isNotEmpty)
+                  const Text('No weight history yet.')
+                else
                   Column(children: history.reversed.map((entry) => ListTile(title: Text('${entry.weight.toStringAsFixed(1)} kg'), subtitle: Text('${entry.date.month}/${entry.date.day}/${entry.date.year}'))).toList()),
               ]),
             ),
